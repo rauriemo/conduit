@@ -66,7 +66,7 @@ type MCPServerRef struct {
     StartupTimeoutMS int               `yaml:"startup_timeout_ms,omitempty" json:"startup_timeout_ms,omitempty"`
 }
 
-func (r MCPServerRef) Validate() error
+func (r *MCPServerRef) Validate() error
 ```
 
 **Naming:** `TransportHTTP` not `TransportURL` -- names the protocol per MCP spec.
@@ -102,7 +102,7 @@ type Pool struct {
 
 func NewPool() *Pool
 
-func (p *Pool) Connect(ctx context.Context, name string, ref mcpconfig.MCPServerRef) error
+func (p *Pool) Connect(ctx context.Context, name string, ref *mcpconfig.MCPServerRef) error
 func (p *Pool) ListTools(ctx context.Context, server string) ([]mcp.Tool, error)
 func (p *Pool) CallTool(ctx context.Context, server, tool string, args map[string]any) (*mcp.CallToolResult, error)
 func (p *Pool) Disconnect(name string) error
@@ -131,7 +131,7 @@ func (p *Pool) Close() error
 
 ### pkg/mcpbridge -- .mcp.json Bridge Writer
 
-Writes `.mcp.json` files for Claude Code auto-discovery. This is a secondary execution path -- Anthem's direct MCP client via the Pool is preferred.
+Writes `.mcp.json` files for Claude Code auto-discovery. **Anthem v1** uses this path for guest agents (merged global + per-guest `mcp_servers`); Claude Code performs tool execution. Use the Pool when an orchestrator holds the MCP session in Go.
 
 ```go
 package mcpbridge
@@ -199,6 +199,6 @@ func WriteMCPConfig(wsPath string, servers map[string]mcpconfig.MCPServerRef) er
 
 ## Relationship to Other Repos
 
-- **Anthem** (`github.com/rauriemo/anthem`): primary consumer. Imports all three packages. Uses Pool for brokered MCP tool execution, mcpconfig for server references in guest frontmatter, mcpbridge for Claude Code compatibility.
-- **RebelTower**: game project where mcp-unity runs. Not a direct Conduit dependency, but mcp-unity servers are referenced via MCPServerRef in agent definitions.
-- **mcp-unity**: adopted external MCP server (MIT, Node.js) for Unity Editor integration. Conduit Pool connects to it via stdio transport.
+- **Anthem** (`github.com/rauriemo/anthem`): primary consumer. Imports Conduit types and mirrors `WriteMCPConfig` behavior in `internal/harness`; merges guest `mcp_servers` into workspace `.mcp.json` for Claude Code. Brokered in-process `Pool.CallTool` is deferred.
+- **RebelTower**: game project; guest agents (e.g. Eiji) declare `mcp_servers` pointing at **Unity’s official MCP relay** (`com.unity.ai.assistant` 2.x, relay + `--mcp`) or other stdio servers. Not a direct Conduit Go dependency.
+- **Unity MCP**: first-party Editor integration; relay binary speaks MCP over stdio to Claude Code / Cursor. Third-party `npx mcp-unity` is an alternative community stack, not Conduit-specific.

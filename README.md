@@ -51,11 +51,11 @@ Named connection pool wrapping the official go-sdk. Manages concurrent MCP serve
 pool := mcpclient.NewPool()
 defer pool.Close()
 
-err := pool.Connect(ctx, "mcp-unity", &ref)
+err := pool.Connect(ctx, "unity-mcp", &ref)
 
-tools, err := pool.ListTools(ctx, "mcp-unity")
+tools, err := pool.ListTools(ctx, "unity-mcp")
 
-result, err := pool.CallTool(ctx, "mcp-unity", "update_gameobject", map[string]any{
+result, err := pool.CallTool(ctx, "unity-mcp", "SomeToolName", map[string]any{
     "name": "Player",
     "tag":  "Player",
 })
@@ -65,7 +65,7 @@ Thread-safe. Transport selected automatically from `MCPServerRef.Type`. Bearer a
 
 ### `pkg/mcpbridge` -- .mcp.json Bridge Writer
 
-Writes `.mcp.json` for Claude Code auto-discovery. Secondary execution path -- direct Pool calls are preferred.
+Writes `.mcp.json` for Claude Code auto-discovery. **Anthem (v1)** uses this bridge for guest agents and relies on Claude Code to run MCP tools; the Pool is for programmatic/brokered use when an orchestrator calls tools in-process.
 
 ```go
 err := mcpbridge.WriteMCPConfig("/path/to/workspace", servers)
@@ -92,7 +92,8 @@ err := mcpbridge.WriteMCPConfig("/path/to/workspace", servers)
               ┌───────┴───────┐
               v               v
          stdio server    HTTP server
-         (mcp-unity)     (future)
+         (Unity relay,   (future)
+          other CLIs)
 ```
 
 Conduit owns the boxes in the middle row. Everything above (orchestration, policy, dispatch) and below (actual MCP servers) belongs to other repos.
