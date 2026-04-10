@@ -29,7 +29,6 @@ func TestConnect_ValidationError(t *testing.T) {
 func TestConnect_DoubleConnect(t *testing.T) {
 	p := NewPool()
 
-	// Manually insert a session to simulate an existing connection.
 	p.sessions["test"] = &clientSession{name: "test"}
 
 	err := p.Connect(context.Background(), "test", mcpconfig.MCPServerRef{
@@ -91,7 +90,7 @@ func TestBuildTransport_Stdio(t *testing.T) {
 		Args:    []string{"hello"},
 		Env:     map[string]string{"FOO": "bar"},
 	}
-	transport, err := buildTransport(ref)
+	transport, err := buildTransport(&ref)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -105,7 +104,7 @@ func TestBuildTransport_HTTP(t *testing.T) {
 		Type: mcpconfig.TransportHTTP,
 		URL:  "http://localhost:8080",
 	}
-	transport, err := buildTransport(ref)
+	transport, err := buildTransport(&ref)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -120,7 +119,7 @@ func TestBuildTransport_HTTP_EmptyAuthToken(t *testing.T) {
 		URL:          "http://localhost:8080",
 		AuthTokenEnv: "CONDUIT_TEST_NONEXISTENT_TOKEN_VAR",
 	}
-	_, err := buildTransport(ref)
+	_, err := buildTransport(&ref)
 	if err == nil {
 		t.Fatal("expected error for empty auth token env var")
 	}
@@ -135,7 +134,7 @@ func TestBuildTransport_HTTP_WithHeaders(t *testing.T) {
 		URL:     "http://localhost:8080",
 		Headers: map[string]string{"X-Custom": "value"},
 	}
-	transport, err := buildTransport(ref)
+	transport, err := buildTransport(&ref)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -148,9 +147,8 @@ func TestBuildTransport_UnsupportedType(t *testing.T) {
 	ref := mcpconfig.MCPServerRef{
 		Type: "grpc",
 	}
-	_, err := buildTransport(ref)
+	_, err := buildTransport(&ref)
 	if err == nil {
 		t.Fatal("expected error for unsupported transport")
 	}
 }
-

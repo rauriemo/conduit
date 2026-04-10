@@ -5,13 +5,17 @@ import (
 	"net/url"
 )
 
+// Transport identifies the MCP transport protocol (stdio or http).
 type Transport string
 
+// Supported transport types.
 const (
 	TransportStdio Transport = "stdio"
 	TransportHTTP  Transport = "http"
 )
 
+// MCPServerRef describes how to reach a single MCP server.
+// It supports both stdio (local subprocess) and HTTP (remote endpoint) transports.
 type MCPServerRef struct {
 	Type             Transport         `yaml:"type" json:"type"`
 	Command          string            `yaml:"command,omitempty" json:"command,omitempty"`
@@ -23,6 +27,8 @@ type MCPServerRef struct {
 	StartupTimeoutMS int               `yaml:"startup_timeout_ms,omitempty" json:"startup_timeout_ms,omitempty"`
 }
 
+// Validate checks that the ref has a supported transport type, the required
+// fields for that transport are present, and conflicting fields are absent.
 func (r MCPServerRef) Validate() error {
 	switch r.Type {
 	case TransportStdio:

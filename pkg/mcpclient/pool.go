@@ -18,17 +18,23 @@ type clientSession struct {
 	name    string
 }
 
+// Pool manages a set of named MCP client sessions. It is safe for concurrent
+// use: sessions can be connected, queried, and disconnected from multiple
+// goroutines.
 type Pool struct {
 	sessions map[string]*clientSession
 	mu       sync.RWMutex
 }
 
+// NewPool returns a ready-to-use Pool with no active connections.
 func NewPool() *Pool {
 	return &Pool{
 		sessions: make(map[string]*clientSession),
 	}
 }
 
+// Connect creates a new MCP client session for the given server ref. It returns
+// an error if the name is already connected or if the transport handshake fails.
 func (p *Pool) Connect(ctx context.Context, name string, ref mcpconfig.MCPServerRef) error {
 	if err := ref.Validate(); err != nil {
 		return fmt.Errorf("mcpclient: connecting %s: %w", name, err)
@@ -41,7 +47,7 @@ func (p *Pool) Connect(ctx context.Context, name string, ref mcpconfig.MCPServer
 		return fmt.Errorf("mcpclient: server %q already connected (disconnect first)", name)
 	}
 
-	transport, err := buildTransport(ref)
+	transport, err := buildTransport(&ref)
 	if err != nil {
 		return fmt.Errorf("mcpclient: connecting %s: %w", name, err)
 	}
@@ -70,6 +76,7 @@ func (p *Pool) Connect(ctx context.Context, name string, ref mcpconfig.MCPServer
 	return nil
 }
 
+// ListTools enumerates available tools on a connected server.
 func (p *Pool) ListTools(ctx context.Context, server string) ([]mcp.Tool, error) {
 	p.mu.RLock()
 	cs, ok := p.sessions[server]
@@ -91,6 +98,7 @@ func (p *Pool) ListTools(ctx context.Context, server string) ([]mcp.Tool, error)
 	return tools, nil
 }
 
+// CallTool invokes a tool by name on a connected server with the given args.
 func (p *Pool) CallTool(ctx context.Context, server, tool string, args map[string]any) (*mcp.CallToolResult, error) {
 	p.mu.RLock()
 	cs, ok := p.sessions[server]
@@ -110,6 +118,7 @@ func (p *Pool) CallTool(ctx context.Context, server, tool string, args map[strin
 	return result, nil
 }
 
+// Disconnect closes the session for the named server and removes it from the pool.
 func (p *Pool) Disconnect(name string) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -126,6 +135,8 @@ func (p *Pool) Disconnect(name string) error {
 	return nil
 }
 
+// Close disconnects all sessions and drains the pool. Errors from individual
+// sessions are collected and returned together.
 func (p *Pool) Close() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -144,14 +155,13 @@ func (p *Pool) Close() error {
 	return nil
 }
 
-func buildTransport(ref mcpconfig.MCPServerRef) (mcp.Transport, error) {
+func buildTransport(ref *mcpconfig.MCPServerRef) (mcp.Transport, error) {
 	switch ref.Type {
 	case mcpconfig.TransportStdio:
 		cmd := exec.Command(ref.Command, ref.Args...)
 		for k, v := range ref.Env {
 			cmd.Env = append(cmd.Env, k+"="+v)
 		}
-		// Inherit parent env so the subprocess can find binaries.
 		if ref.Env != nil {
 			cmd.Env = append(os.Environ(), cmd.Env...)
 		}

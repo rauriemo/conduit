@@ -13,6 +13,9 @@ type mcpJSON struct {
 	MCPServers map[string]any `json:"mcpServers"`
 }
 
+// WriteMCPConfig writes a .mcp.json file to wsPath that Claude Code / Cursor
+// auto-discovers for MCP server configuration. Validates each server ref before
+// writing. Returns nil without writing if servers is empty.
 func WriteMCPConfig(wsPath string, servers map[string]mcpconfig.MCPServerRef) error {
 	if len(servers) == 0 {
 		return nil
@@ -62,17 +65,17 @@ func WriteMCPConfig(wsPath string, servers map[string]mcpconfig.MCPServerRef) er
 	tmpName := tmp.Name()
 
 	if _, err := tmp.Write(data); err != nil {
-		tmp.Close()
-		os.Remove(tmpName)
+		_ = tmp.Close()
+		_ = os.Remove(tmpName)
 		return fmt.Errorf("mcpbridge: writing temp file: %w", err)
 	}
 	if err := tmp.Close(); err != nil {
-		os.Remove(tmpName)
+		_ = os.Remove(tmpName)
 		return fmt.Errorf("mcpbridge: closing temp file: %w", err)
 	}
 
 	if err := os.Rename(tmpName, dest); err != nil {
-		os.Remove(tmpName)
+		_ = os.Remove(tmpName)
 		return fmt.Errorf("mcpbridge: renaming to %s: %w", dest, err)
 	}
 

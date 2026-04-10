@@ -133,4 +133,3 @@ func TestMCPServerRef_Validate(t *testing.T) {
 		})
 	}
 }
-
