@@ -35,7 +35,7 @@ func NewPool() *Pool {
 
 // Connect creates a new MCP client session for the given server ref. It returns
 // an error if the name is already connected or if the transport handshake fails.
-func (p *Pool) Connect(ctx context.Context, name string, ref mcpconfig.MCPServerRef) error {
+func (p *Pool) Connect(ctx context.Context, name string, ref *mcpconfig.MCPServerRef) error {
 	if err := ref.Validate(); err != nil {
 		return fmt.Errorf("mcpclient: connecting %s: %w", name, err)
 	}
@@ -47,7 +47,7 @@ func (p *Pool) Connect(ctx context.Context, name string, ref mcpconfig.MCPServer
 		return fmt.Errorf("mcpclient: server %q already connected (disconnect first)", name)
 	}
 
-	transport, err := buildTransport(&ref)
+	transport, err := buildTransport(ref)
 	if err != nil {
 		return fmt.Errorf("mcpclient: connecting %s: %w", name, err)
 	}

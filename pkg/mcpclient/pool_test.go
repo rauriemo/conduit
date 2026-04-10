@@ -20,7 +20,7 @@ func TestNewPool(t *testing.T) {
 
 func TestConnect_ValidationError(t *testing.T) {
 	p := NewPool()
-	err := p.Connect(context.Background(), "bad", mcpconfig.MCPServerRef{})
+	err := p.Connect(context.Background(), "bad", &mcpconfig.MCPServerRef{})
 	if err == nil {
 		t.Fatal("expected validation error")
 	}
@@ -31,7 +31,7 @@ func TestConnect_DoubleConnect(t *testing.T) {
 
 	p.sessions["test"] = &clientSession{name: "test"}
 
-	err := p.Connect(context.Background(), "test", mcpconfig.MCPServerRef{
+	err := p.Connect(context.Background(), "test", &mcpconfig.MCPServerRef{
 		Type:    mcpconfig.TransportStdio,
 		Command: "echo",
 	})

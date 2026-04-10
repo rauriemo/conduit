@@ -75,7 +75,7 @@ func (r MCPServerRef) Validate() error
 - `Type` is required, must be `stdio` or `http`
 - If `stdio`: `Command` is required, `URL` must be empty
 - If `http`: `URL` is required, `Command` must be empty. URL must parse as valid URL.
-- `StartupTimeoutMS` if set must be > 0
+- `StartupTimeoutMS` must not be negative (0 means no extra deadline beyond parent context)
 - Return wrapped errors with field context (e.g., `"mcpconfig: stdio server requires command"`)
 
 **Tests:** Table-driven covering all validation branches, both transports, edge cases (empty type, conflicting fields).

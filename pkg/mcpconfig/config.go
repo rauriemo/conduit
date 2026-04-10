@@ -29,7 +29,7 @@ type MCPServerRef struct {
 
 // Validate checks that the ref has a supported transport type, the required
 // fields for that transport are present, and conflicting fields are absent.
-func (r MCPServerRef) Validate() error {
+func (r *MCPServerRef) Validate() error {
 	switch r.Type {
 	case TransportStdio:
 		if r.Command == "" {

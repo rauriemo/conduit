@@ -51,7 +51,7 @@ Named connection pool wrapping the official go-sdk. Manages concurrent MCP serve
 pool := mcpclient.NewPool()
 defer pool.Close()
 
-err := pool.Connect(ctx, "mcp-unity", ref)
+err := pool.Connect(ctx, "mcp-unity", &ref)
 
 tools, err := pool.ListTools(ctx, "mcp-unity")
 
