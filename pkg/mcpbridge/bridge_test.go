@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/rauriemo/conduit/pkg/mcpconfig"
@@ -188,16 +189,29 @@ func TestWriteMCPConfig_NoAuthTokenInOutput(t *testing.T) {
 	}
 
 	raw := string(data)
-	if contains(raw, "SECRET_TOKEN") || contains(raw, "auth_token") || contains(raw, "AuthToken") {
+	if strings.Contains(raw, "SECRET_TOKEN") || strings.Contains(raw, "auth_token") || strings.Contains(raw, "AuthToken") {
 		t.Fatalf("auth token env leaked into .mcp.json: %s", raw)
 	}
 }
 
-func contains(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
+func TestWriteMCPConfig_InvalidRefReturnsError(t *testing.T) {
+	dir := t.TempDir()
+
+	servers := map[string]mcpconfig.MCPServerRef{
+		"bad": {Type: "invalid"},
 	}
-	return false
+
+	err := WriteMCPConfig(dir, servers)
+	if err == nil {
+		t.Fatal("expected validation error for invalid ref")
+	}
+	if !strings.Contains(err.Error(), "mcpbridge") {
+		t.Errorf("error %q missing mcpbridge prefix", err.Error())
+	}
+
+	path := filepath.Join(dir, ".mcp.json")
+	if _, statErr := os.Stat(path); !os.IsNotExist(statErr) {
+		t.Fatal("expected no file when validation fails")
+	}
 }
+

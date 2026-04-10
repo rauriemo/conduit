@@ -1,6 +1,7 @@
 package mcpconfig
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -78,7 +79,7 @@ func TestMCPServerRef_Validate(t *testing.T) {
 				Command:          "node",
 				StartupTimeoutMS: -1,
 			},
-			wantErr: "startup_timeout_ms must be > 0",
+			wantErr: "startup_timeout_ms must not be negative",
 		},
 		{
 			name: "zero startup timeout is valid",
@@ -126,22 +127,10 @@ func TestMCPServerRef_Validate(t *testing.T) {
 			if err == nil {
 				t.Fatalf("expected error containing %q, got nil", tt.wantErr)
 			}
-			if got := err.Error(); !contains(got, tt.wantErr) {
+			if got := err.Error(); !strings.Contains(got, tt.wantErr) {
 				t.Fatalf("error %q does not contain %q", got, tt.wantErr)
 			}
 		})
 	}
 }
 
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && searchString(s, substr)
-}
-
-func searchString(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
-}

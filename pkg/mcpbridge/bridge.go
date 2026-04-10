@@ -21,6 +21,10 @@ func WriteMCPConfig(wsPath string, servers map[string]mcpconfig.MCPServerRef) er
 	out := mcpJSON{MCPServers: make(map[string]any, len(servers))}
 
 	for name, ref := range servers {
+		if err := ref.Validate(); err != nil {
+			return fmt.Errorf("mcpbridge: server %q: %w", name, err)
+		}
+
 		entry := make(map[string]any)
 
 		switch ref.Type {

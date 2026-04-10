@@ -49,7 +49,7 @@ func (r MCPServerRef) Validate() error {
 	}
 
 	if r.StartupTimeoutMS < 0 {
-		return fmt.Errorf("mcpconfig: startup_timeout_ms must be > 0")
+		return fmt.Errorf("mcpconfig: startup_timeout_ms must not be negative")
 	}
 
 	return nil

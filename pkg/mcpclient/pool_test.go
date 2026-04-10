@@ -2,6 +2,7 @@ package mcpclient
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/rauriemo/conduit/pkg/mcpconfig"
@@ -38,7 +39,7 @@ func TestConnect_DoubleConnect(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected double-connect error")
 	}
-	if got := err.Error(); !contains(got, "already connected") {
+	if got := err.Error(); !strings.Contains(got, "already connected") {
 		t.Fatalf("unexpected error: %v", got)
 	}
 }
@@ -49,7 +50,7 @@ func TestListTools_NotConnected(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for missing server")
 	}
-	if got := err.Error(); !contains(got, "not connected") {
+	if got := err.Error(); !strings.Contains(got, "not connected") {
 		t.Fatalf("unexpected error: %v", got)
 	}
 }
@@ -60,7 +61,7 @@ func TestCallTool_NotConnected(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for missing server")
 	}
-	if got := err.Error(); !contains(got, "not connected") {
+	if got := err.Error(); !strings.Contains(got, "not connected") {
 		t.Fatalf("unexpected error: %v", got)
 	}
 }
@@ -71,7 +72,7 @@ func TestDisconnect_NotConnected(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for missing server")
 	}
-	if got := err.Error(); !contains(got, "not connected") {
+	if got := err.Error(); !strings.Contains(got, "not connected") {
 		t.Fatalf("unexpected error: %v", got)
 	}
 }
@@ -123,7 +124,7 @@ func TestBuildTransport_HTTP_EmptyAuthToken(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for empty auth token env var")
 	}
-	if got := err.Error(); !contains(got, "auth token env") {
+	if got := err.Error(); !strings.Contains(got, "auth token env") {
 		t.Fatalf("unexpected error: %v", got)
 	}
 }
@@ -153,11 +154,3 @@ func TestBuildTransport_UnsupportedType(t *testing.T) {
 	}
 }
 
-func contains(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
-}
